@@ -112,7 +112,7 @@ export default function PublicPage() {
         </div>
       </section>
 
-      {/* Member Grid */}
+      {/* Member Table */}
       <main className="container mx-auto px-4 py-12">
         {loading ? (
           <div className="text-center py-12">
@@ -125,71 +125,85 @@ export default function PublicPage() {
             <p className="text-muted-foreground">Noch keine Mitglieder vorhanden</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {members.map((member, index) => {
-              const { paidCount, total } = getMemberPaymentSummary(member.payments);
-              const allPaid = paidCount === total;
-
-              return (
-                <Card
-                  key={index}
-                  className="card-hover animate-fadeIn"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                  data-testid={`public-member-card-${index}`}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-[hsl(220,40%,10%)]">
-                        {member.vorname} {member.name}
-                      </CardTitle>
-                      <Badge
-                        className={
-                          allPaid
-                            ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                            : "bg-amber-100 text-amber-700 border-amber-200"
-                        }
+          <Card className="card-hover overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-muted/50 border-b">
+                    <th className="text-left py-4 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                      Mitglied
+                    </th>
+                    {MONTHS.map((month, idx) => (
+                      <th
+                        key={idx}
+                        className="text-center py-4 px-2 text-xs uppercase tracking-widest text-muted-foreground font-medium w-12"
                       >
-                        {paidCount}/{total}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-6 gap-2">
-                      {member.payments.map((payment, pIdx) => (
-                        <div
-                          key={pIdx}
-                          className="flex flex-col items-center"
-                          data-testid={`public-payment-${index}-${pIdx}`}
-                        >
-                          <span className="text-xs text-muted-foreground mb-1">
-                            {MONTHS[pIdx]}
-                          </span>
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-                              payment.paid
-                                ? "bg-emerald-100 text-emerald-600"
-                                : "bg-red-100 text-red-400"
-                            }`}
+                        {month}
+                      </th>
+                    ))}
+                    <th className="text-center py-4 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((member, index) => {
+                    const { paidCount, total } = getMemberPaymentSummary(member.payments);
+                    const allPaid = paidCount === total;
+
+                    return (
+                      <tr
+                        key={index}
+                        className="border-b hover:bg-muted/30 transition-colors"
+                        data-testid={`public-member-row-${index}`}
+                      >
+                        <td className="py-3 px-4 font-medium text-[hsl(220,40%,10%)]">
+                          {member.vorname} {member.name}
+                        </td>
+                        {member.payments.map((payment, pIdx) => (
+                          <td
+                            key={pIdx}
+                            className="text-center py-3 px-2"
+                            data-testid={`public-payment-${index}-${pIdx}`}
                           >
-                            {payment.paid ? (
-                              <Check className="w-4 h-4" />
-                            ) : (
-                              <X className="w-4 h-4" />
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                            <div
+                              className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto ${
+                                payment.paid
+                                  ? "bg-emerald-100 text-emerald-600"
+                                  : "bg-red-100 text-red-400"
+                              }`}
+                            >
+                              {payment.paid ? (
+                                <Check className="w-4 h-4" />
+                              ) : (
+                                <X className="w-4 h-4" />
+                              )}
+                            </div>
+                          </td>
+                        ))}
+                        <td className="text-center py-3 px-4">
+                          <Badge
+                            className={
+                              allPaid
+                                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                                : "bg-amber-100 text-amber-700 border-amber-200"
+                            }
+                          >
+                            {paidCount}/{total}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
 
         {/* Legend */}
         {members.length > 0 && (
-          <div className="flex justify-center gap-8 mt-12 pt-8 border-t border-border">
+          <div className="flex justify-center gap-8 mt-8">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
                 <Check className="w-3 h-3 text-emerald-600" />
