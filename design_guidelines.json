@@ -1,0 +1,136 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "mission": "Create a club management app that feels like a community hub, not a spreadsheet. Balance administrative utility with member-facing warmth.",
+    "principles": [
+      "Fusion over Imitation: Mix 'Swiss Utility' (Admin) with 'Soft Community' (Public).",
+      "Emotion First: Trust for admins, Welcoming for members.",
+      "Content is King: The member status is the hero.",
+      "Zoom In: Focus on the status indicators—make them clear and satisfying.",
+      "Negative Space: Don't cram the public list; let it breathe."
+    ]
+  },
+  "typography": {
+    "fonts": {
+      "headings": {
+        "family": "Manrope",
+        "weights": ["600", "700", "800"],
+        "usage": "All page titles, modal headers, and major section dividers."
+      },
+      "body": {
+        "family": "Inter",
+        "weights": ["400", "500"],
+        "usage": "Table data, form inputs, standard text."
+      }
+    },
+    "rules": [
+      "Headings > 32px must use tracking-tight.",
+      "Labels must be Uppercase + Tiny (text-xs) + Wide Spacing (tracking-widest).",
+      "Never use Inter for Headings."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "name": "Royal Azure",
+        "value": "hsl(220, 90%, 40%)",
+        "usage": "Primary buttons, active states, key branding elements."
+      },
+      "secondary": {
+        "name": "Bone White",
+        "value": "hsl(40, 20%, 97%)",
+        "usage": "Page backgrounds, subtle section dividers."
+      },
+      "accent": {
+        "name": "Signal Orange",
+        "value": "hsl(25, 95%, 50%)",
+        "usage": "Call-to-actions (Pay, Add), notification dots."
+      },
+      "status": {
+        "paid": "hsl(150, 80%, 40%)",
+        "unpaid": "hsl(350, 80%, 55%)",
+        "pending": "hsl(45, 90%, 50%)"
+      },
+      "neutral": {
+        "surface": "hsl(0, 0%, 100%)",
+        "border": "hsl(220, 15%, 90%)",
+        "text_main": "hsl(220, 40%, 10%)",
+        "text_muted": "hsl(220, 20%, 40%)"
+      }
+    },
+    "theme_strategy": "Light Mode Only (as requested). Use 'Bone White' to avoid clinical harshness."
+  },
+  "layout": {
+    "spacing_system": "Tailwind Scale: p-4, p-6, p-8, p-12, p-16. Containers with borders MUST have p-6 or p-8 internal padding.",
+    "grids": {
+      "public_view": {
+        "mode": "Mode A: The Tetris Grid",
+        "description": "Hero section with community image (col-span-full), followed by a card grid for members.",
+        "classes": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      },
+      "admin_dashboard": {
+        "mode": "Mode B: High Density Grid",
+        "description": "Sidebar layout. Main content uses a tight table layout for maximum data visibility.",
+        "classes": "grid grid-cols-1 gap-4"
+      }
+    }
+  },
+  "components": {
+    "buttons": {
+      "style": "Pill-shaped or slightly rounded (rounded-md).",
+      "interaction": "Transform: scale-105 on hover. Shadow-lg on hover.",
+      "classes": "rounded-full font-semibold transition-all duration-200"
+    },
+    "cards": {
+      "style": "Flat with 1px border (border-neutral-border). No shadow by default. Shadow-md on hover.",
+      "classes": "bg-white border border-border hover:shadow-md transition-shadow duration-200"
+    },
+    "tables": {
+      "style": "Clean rows. No vertical borders. Header uppercase and muted.",
+      "status_pills": "Use badge component. Green for Paid, Red for Unpaid."
+    },
+    "inputs": {
+      "style": "Shadcn Input. Customize focus ring to match Royal Azure.",
+      "classes": "focus-visible:ring-primary"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "usage": "Sticky headers and modal overlays.",
+      "classes": "bg-white/80 backdrop-blur-md border-b border-white/20"
+    },
+    "textures": {
+      "usage": "Subtle noise overlay on the 'Bone White' background to add tactility.",
+      "css": "background-image: url('data:image/svg+xml,...'); opacity: 0.03;"
+    }
+  },
+  "media": {
+    "images": [
+      {
+        "category": "hero_community",
+        "url": "https://images.unsplash.com/photo-1758272133803-1cbb513689ca?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwzfHxkaXZlcnNlJTIwY29tbXVuaXR5JTIwZ3JvdXAlMjBzbWlsaW5nfGVufDB8fHx8MTc2OTc0Mjg2MHww&ixlib=rb-4.1.0&q=85",
+        "description": "Diverse group of happy friends taking a selfie. Use for Public Page Hero."
+      },
+      {
+        "category": "login_background",
+        "url": "https://images.unsplash.com/photo-1769541607705-3b3c5095679b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBnZW9tZXRyaWMlMjBsaWdodCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzY5NzQyODYyfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract white geometric low poly background. Use for Login Page background."
+      }
+    ],
+    "icons": "Use Lucide-React (default). For specific feature icons, use Phosphor Icons if needed."
+  },
+  "instructions_to_main_agent": [
+    "1. Setup: Ensure Tailwind config extends the colors defined above.",
+    "2. Login Page: Create a centered card layout on the 'login_background'. Use Google Auth button.",
+    "3. Public Page: Create a 'Member Status Board'. Use the 'hero_community' image at the top with a welcoming message. Below, list members with their payment status (Paid/Unpaid) clearly visible.",
+    "4. Admin Dashboard: Create a secure layout (Sidebar + Content). Feature a 'Member Management' table with CRUD actions and a 'Fee Tracking' view (Matrix of Months vs Members).",
+    "5. Testing: Add data-testid to all buttons, inputs, and status indicators."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI Slop': No generic gradients, no centered text everywhere.",
+    "Micro-animations: Add hover states to every interactive element.",
+    "Spacing: Use p-8 where you'd normally use p-4.",
+    "Contrast: Ensure text is readable on the 'Bone White' background.",
+    "No 'Transparent' Backgrounds: Always use a blur or solid color for dropdowns/headers."
+  ]
+}
