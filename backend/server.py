@@ -341,6 +341,21 @@ async def update_payment(
     return payment
 
 
+@api_router.get("/debug/members")
+async def debug_members(user: User = Depends(get_current_user)):
+    """Debug endpoint to check members"""
+    try:
+        print("DEBUG: Starting debug_members")
+        members = await db.members.find({}, {"_id": 0}).to_list(1000)
+        print(f"DEBUG: Found {len(members)} members")
+        for member in members:
+            print(f"DEBUG: Member: {member}")
+        return {"members": members, "count": len(members)}
+    except Exception as e:
+        print(f"DEBUG: Exception: {e}")
+        return {"error": str(e)}
+
+
 @api_router.get("/payments/year/{year}", response_model=List[dict])
 async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info"""
