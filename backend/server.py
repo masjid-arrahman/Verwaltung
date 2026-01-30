@@ -344,25 +344,32 @@ async def update_payment(
 @api_router.get("/payments/year/{year}", response_model=List[dict])
 async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info"""
+    logger.info(f"Getting payments for year {year}")
     members = await db.members.find({}, {"_id": 0}).to_list(1000)
+    logger.info(f"Found {len(members)} members")
     
     result = []
     for member in members:
+        logger.info(f"Processing member: {member['member_id']} - {member['vorname']} {member['name']}")
         payments = await db.payments.find(
             {"member_id": member["member_id"], "year": year},
             {"_id": 0}
         ).to_list(12)
+        logger.info(f"Found {len(payments)} payments for member {member['member_id']}")
         
         # Create payment map
         payment_map = {p["month"]: p["paid"] for p in payments}
         
-        result.append({
+        member_result = {
             "member_id": member["member_id"],
             "vorname": member["vorname"],
             "name": member["name"],
             "payments": [{"month": m, "paid": payment_map.get(m, False)} for m in range(1, 13)]
-        })
+        }
+        result.append(member_result)
+        logger.info(f"Added member to result: {member_result}")
     
+    logger.info(f"Returning {len(result)} members with payment data")
     return result
 
 
