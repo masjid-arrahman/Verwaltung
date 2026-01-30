@@ -346,6 +346,119 @@ async def export_payments_csv(year: int, user: User = Depends(get_current_user))
     )
 
 
+@api_router.get("/payments/year/{year}/export-pdf")
+async def export_payments_pdf(year: int, user: User = Depends(get_current_user)):
+    """Export all payments for a year as PDF"""
+    members = await db.members.find({}, {"_id": 0}).to_list(1000)
+    
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), 
+                           leftMargin=1*cm, rightMargin=1*cm,
+                           topMargin=1*cm, bottomMargin=1*cm)
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        spaceAfter=20,
+        alignment=1  # Center
+    )
+    elements.append(Paragraph(f"Beitragsübersicht {year}", title_style))
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Table header
+    months = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+    header = ["Vorname", "Nachname"] + months + ["Gesamt"]
+    
+    # Table data
+    data = [header]
+    for member in members:
+        payments = await db.payments.find(
+            {"member_id": member["member_id"], "year": year},
+            {"_id": 0}
+        ).to_list(12)
+        
+        payment_map = {p["month"]: p["paid"] for p in payments}
+        
+        row = [member["vorname"], member["name"]]
+        paid_count = 0
+        for m in range(1, 13):
+            paid = payment_map.get(m, False)
+            row.append("✓" if paid else "—")
+            if paid:
+                paid_count += 1
+        row.append(f"{paid_count}/12")
+        data.append(row)
+    
+    # Create table
+    col_widths = [2.5*cm, 2.5*cm] + [1.2*cm]*12 + [1.5*cm]
+    table = Table(data, colWidths=col_widths)
+    
+    # Table styling
+    table_style = TableStyle([
+        # Header
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a56db')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        
+        # Body
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('TOPPADDING', (0, 1), (-1, -1), 6),
+        
+        # Grid
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#1a56db')),
+        
+        # Alternating row colors
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+    ])
+    
+    # Highlight paid cells green, unpaid red
+    for row_idx, row in enumerate(data[1:], start=1):
+        for col_idx in range(2, 14):
+            if row[col_idx] == "✓":
+                table_style.add('TEXTCOLOR', (col_idx, row_idx), (col_idx, row_idx), colors.HexColor('#059669'))
+            else:
+                table_style.add('TEXTCOLOR', (col_idx, row_idx), (col_idx, row_idx), colors.HexColor('#dc2626'))
+    
+    table.setStyle(table_style)
+    elements.append(table)
+    
+    # Footer
+    elements.append(Spacer(1, 1*cm))
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.gray
+    )
+    elements.append(Paragraph(f"Erstellt am: {datetime.now().strftime('%d.%m.%Y %H:%M')}", footer_style))
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    filename = f"beitraege_{year}.pdf"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 @api_router.get("/payments/{member_id}/{year}", response_model=List[dict])
 async def get_member_payments(member_id: str, year: int, user: User = Depends(get_current_user)):
     """Get payments for a member for a specific year"""
