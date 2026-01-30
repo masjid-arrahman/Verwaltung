@@ -269,6 +269,30 @@ async def delete_member(member_id: str, user: User = Depends(get_current_user)):
 
 # ==================== PAYMENT ROUTES (Protected) ====================
 
+@api_router.get("/payments/year/{year}", response_model=List[dict])
+async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
+    """Get all payments for a specific year with member info"""
+    members = await db.members.find({}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for member in members:
+        payments = await db.payments.find(
+            {"member_id": member["member_id"], "year": year},
+            {"_id": 0}
+        ).to_list(12)
+        
+        payment_map = {p["month"]: p["paid"] for p in payments}
+        
+        result.append({
+            "member_id": member["member_id"],
+            "vorname": member["vorname"],
+            "name": member["name"],
+            "payments": [{"month": m, "paid": payment_map.get(m, False)} for m in range(1, 13)]
+        })
+    
+    return result
+
+
 @api_router.get("/payments/{member_id}/{year}", response_model=List[dict])
 async def get_member_payments(member_id: str, year: int, user: User = Depends(get_current_user)):
     """Get payments for a member for a specific year"""
