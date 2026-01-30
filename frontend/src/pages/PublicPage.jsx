@@ -27,13 +27,20 @@ export default function PublicPage() {
   const [members, setMembers] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchPublicData = async () => {
       setLoading(true);
       try {
         const response = await axios.get(`${API}/public/members/${selectedYear}`);
-        setMembers(response.data);
+        // Sort by last name (name), then first name (vorname)
+        const sortedMembers = response.data.sort((a, b) => {
+          const nameCompare = a.name.localeCompare(b.name, 'de');
+          if (nameCompare !== 0) return nameCompare;
+          return a.vorname.localeCompare(b.vorname, 'de');
+        });
+        setMembers(sortedMembers);
       } catch (error) {
         console.error("Error fetching public data:", error);
       }
@@ -42,6 +49,14 @@ export default function PublicPage() {
 
     fetchPublicData();
   }, [selectedYear]);
+
+  // Filter members based on search term
+  const filteredMembers = members.filter((member) => {
+    const fullName = `${member.vorname} ${member.name}`.toLowerCase();
+    const reverseName = `${member.name} ${member.vorname}`.toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return fullName.includes(search) || reverseName.includes(search);
+  });
 
   const getYearOptions = () => {
     const currentYear = new Date().getFullYear();
