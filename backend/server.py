@@ -384,6 +384,12 @@ async def debug_payments(year: int, user: User = Depends(get_current_user)):
         return {"error": str(e)}
 
 
+@api_router.get("/test/working")
+async def test_working(user: User = Depends(get_current_user)):
+    """Test endpoint to verify routing works"""
+    return {"message": "test endpoint working", "user": user.name}
+
+
 @api_router.get("/payments/year/{year}")
 async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info"""
