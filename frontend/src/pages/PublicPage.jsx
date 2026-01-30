@@ -194,7 +194,7 @@ export default function PublicPage() {
                         data-testid={`public-member-row-${index}`}
                       >
                         <td className="py-3 px-4 font-medium text-[hsl(220,40%,10%)]">
-                          {member.vorname} {member.name}
+                          {member.name}, {member.vorname}
                         </td>
                         {member.payments.map((payment, pIdx) => (
                           <td
