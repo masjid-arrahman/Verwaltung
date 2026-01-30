@@ -356,6 +356,34 @@ async def debug_members(user: User = Depends(get_current_user)):
         return {"error": str(e)}
 
 
+@api_router.get("/debug/payments/{year}")
+async def debug_payments(year: int, user: User = Depends(get_current_user)):
+    """Debug payments endpoint"""
+    try:
+        print(f"DEBUG: Getting payments for year {year}")
+        members = await db.members.find({}, {"_id": 0}).to_list(1000)
+        print(f"DEBUG: Found {len(members)} members")
+        
+        result = []
+        for member in members:
+            print(f"DEBUG: Processing member: {member['member_id']}")
+            # Simple result without payments for now
+            member_result = {
+                "member_id": member["member_id"],
+                "vorname": member["vorname"],
+                "name": member["name"],
+                "test": "working"
+            }
+            result.append(member_result)
+            print(f"DEBUG: Added member to result")
+        
+        print(f"DEBUG: Returning {len(result)} members")
+        return result
+    except Exception as e:
+        print(f"DEBUG: Exception: {e}")
+        return {"error": str(e)}
+
+
 @api_router.get("/payments/year/{year}")
 async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info"""
