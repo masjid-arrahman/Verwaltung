@@ -351,13 +351,22 @@ export default function DashboardPage({ user, setUser }) {
 
           <div className="flex items-center gap-2">
             <Button
+              onClick={handleExportPDF}
+              variant="outline"
+              className="rounded-full"
+              data-testid="export-pdf-btn"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              PDF
+            </Button>
+            <Button
               onClick={handleExportCSV}
               variant="outline"
               className="rounded-full"
               data-testid="export-csv-btn"
             >
               <Download className="w-4 h-4 mr-2" />
-              CSV Export
+              CSV
             </Button>
             <Button
               onClick={handleOpenAddMember}
