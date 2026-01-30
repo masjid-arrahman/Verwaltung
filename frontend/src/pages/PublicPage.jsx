@@ -155,6 +155,11 @@ export default function PublicPage() {
             <Users className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground">Noch keine Mitglieder vorhanden</p>
           </div>
+        ) : filteredMembers.length === 0 ? (
+          <div className="text-center py-12">
+            <Search className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-muted-foreground">Keine Mitglieder gefunden für "{searchTerm}"</p>
+          </div>
         ) : (
           <Card className="card-hover overflow-hidden">
             <div className="overflow-x-auto">
@@ -178,7 +183,7 @@ export default function PublicPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.map((member, index) => {
+                  {filteredMembers.map((member, index) => {
                     const { paidCount, total } = getMemberPaymentSummary(member.payments);
                     const allPaid = paidCount === total;
 
