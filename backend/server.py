@@ -385,7 +385,6 @@ async def debug_payments(year: int, user: User = Depends(get_current_user)):
 
 
 @api_router.get("/payments/year/{year}")
-@api_router.get("/payments/year/{year}")
 async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info"""
     # Simple test - just return a test response
