@@ -184,9 +184,30 @@ export default function DashboardPage({ user, setUser }) {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Export erfolgreich");
+      toast.success("CSV Export erfolgreich");
     } catch (error) {
       toast.error("Fehler beim Export");
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const response = await axios.get(`${API}/payments/year/${selectedYear}/export-pdf`, {
+        withCredentials: true,
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `beitraege_${selectedYear}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("PDF Export erfolgreich");
+    } catch (error) {
+      toast.error("Fehler beim PDF Export");
     }
   };
 
