@@ -65,7 +65,7 @@ class Payment(BaseModel):
     payment_id: str = Field(default_factory=lambda: f"payment_{uuid.uuid4().hex[:12]}")
     member_id: str
     year: int
-    month: int  # 1-12
+    month: int
     paid: bool = False
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -74,20 +74,12 @@ class PaymentUpdate(BaseModel):
     paid: bool
 
 
-class PublicMemberStatus(BaseModel):
-    vorname: str
-    name: str
-    payments: List[dict]  # [{month: 1, paid: True}, ...]
-
-
 # ==================== AUTH HELPERS ====================
 
 async def get_current_user(request: Request) -> User:
     """Get current user from session token (cookie or header)"""
-    # Try cookie first
     session_token = request.cookies.get("session_token")
     
-    # Fallback to Authorization header
     if not session_token:
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
@@ -96,7 +88,6 @@ async def get_current_user(request: Request) -> User:
     if not session_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    # Find session in database
     session_doc = await db.user_sessions.find_one(
         {"session_token": session_token},
         {"_id": 0}
@@ -105,7 +96,6 @@ async def get_current_user(request: Request) -> User:
     if not session_doc:
         raise HTTPException(status_code=401, detail="Invalid session")
     
-    # Check expiry
     expires_at = session_doc.get("expires_at")
     if isinstance(expires_at, str):
         expires_at = datetime.fromisoformat(expires_at)
@@ -114,7 +104,6 @@ async def get_current_user(request: Request) -> User:
     if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Session expired")
     
-    # Get user
     user_doc = await db.users.find_one(
         {"user_id": session_doc["user_id"]},
         {"_id": 0}
@@ -137,7 +126,6 @@ async def create_session(request: Request, response: Response):
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id required")
     
-    # Call Emergent Auth to get user data
     async with httpx.AsyncClient() as client_http:
         auth_response = await client_http.get(
             "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
@@ -149,7 +137,6 @@ async def create_session(request: Request, response: Response):
     
     auth_data = auth_response.json()
     
-    # Create or update user
     user_id = f"user_{uuid.uuid4().hex[:12]}"
     existing_user = await db.users.find_one({"email": auth_data["email"]}, {"_id": 0})
     
@@ -171,14 +158,11 @@ async def create_session(request: Request, response: Response):
             "created_at": datetime.now(timezone.utc).isoformat()
         })
     
-    # Create session
     session_token = auth_data.get("session_token", f"session_{uuid.uuid4().hex}")
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     
-    # Delete old sessions for this user
     await db.user_sessions.delete_many({"user_id": user_id})
     
-    # Create new session
     await db.user_sessions.insert_one({
         "user_id": user_id,
         "session_token": session_token,
@@ -186,7 +170,6 @@ async def create_session(request: Request, response: Response):
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
-    # Set cookie
     response.set_cookie(
         key="session_token",
         value=session_token,
@@ -194,10 +177,9 @@ async def create_session(request: Request, response: Response):
         secure=True,
         samesite="none",
         path="/",
-        max_age=7 * 24 * 60 * 60  # 7 days
+        max_age=7 * 24 * 60 * 60
     )
     
-    # Get user for response
     user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     
     return user_doc
@@ -244,8 +226,6 @@ async def create_member(member: MemberCreate, user: User = Depends(get_current_u
     doc["created_at"] = doc["created_at"].isoformat()
     
     await db.members.insert_one(doc)
-    
-    # Exclude _id from response
     doc.pop("_id", None)
     return doc
 
@@ -311,12 +291,10 @@ async def update_payment(
     if month < 1 or month > 12:
         raise HTTPException(status_code=400, detail="Month must be between 1 and 12")
     
-    # Check member exists
     member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
     
-    # Upsert payment
     await db.payments.update_one(
         {"member_id": member_id, "year": year, "month": month},
         {
@@ -341,59 +319,9 @@ async def update_payment(
     return payment
 
 
-@api_router.get("/debug/members")
-async def debug_members(user: User = Depends(get_current_user)):
-    """Debug endpoint to check members"""
-    try:
-        print("DEBUG: Starting debug_members")
-        members = await db.members.find({}, {"_id": 0}).to_list(1000)
-        print(f"DEBUG: Found {len(members)} members")
-        for member in members:
-            print(f"DEBUG: Member: {member}")
-        return {"members": members, "count": len(members)}
-    except Exception as e:
-        print(f"DEBUG: Exception: {e}")
-        return {"error": str(e)}
-
-
-@api_router.get("/debug/payments/{year}")
-async def debug_payments(year: int, user: User = Depends(get_current_user)):
-    """Debug payments endpoint"""
-    try:
-        members = await db.members.find({}, {"_id": 0}).to_list(1000)
-        
-        result = []
-        for member in members:
-            payments = await db.payments.find(
-                {"member_id": member["member_id"], "year": year},
-                {"_id": 0}
-            ).to_list(12)
-            
-            # Create payment map
-            payment_map = {p["month"]: p["paid"] for p in payments}
-            
-            member_result = {
-                "member_id": member["member_id"],
-                "vorname": member["vorname"],
-                "name": member["name"],
-                "payments": [{"month": m, "paid": payment_map.get(m, False)} for m in range(1, 13)]
-            }
-            result.append(member_result)
-        
-        return {"debug": True, "count": len(result), "data": result}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@api_router.get("/test/working")
-async def test_working(user: User = Depends(get_current_user)):
-    """Test endpoint to verify routing works"""
-    return {"message": "test endpoint working", "user": user.name}
-
-
-@api_router.get("/payments/year/{year}")
-async def get_payments_by_year(year: int, user: User = Depends(get_current_user)):
-    """Get all payments for a specific year with member info - FIXED VERSION"""
+@api_router.get("/payments/year/{year}", response_model=List[dict])
+async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
+    """Get all payments for a specific year with member info"""
     members = await db.members.find({}, {"_id": 0}).to_list(1000)
     
     result = []
@@ -403,7 +331,6 @@ async def get_payments_by_year(year: int, user: User = Depends(get_current_user)
             {"_id": 0}
         ).to_list(12)
         
-        # Create payment map
         payment_map = {p["month"]: p["paid"] for p in payments}
         
         result.append({
@@ -414,13 +341,6 @@ async def get_payments_by_year(year: int, user: User = Depends(get_current_user)
         })
     
     return result
-
-
-@api_router.get("/payments-new/year/{year}")
-async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
-    """Get all payments for a specific year with member info"""
-    # Simple test - just return a test response
-    return [{"test": "function_called", "year": year}]
 
 
 # ==================== PUBLIC ROUTES ====================
@@ -445,7 +365,6 @@ async def get_public_member_status(year: int):
             "payments": [{"month": m, "paid": payment_map.get(m, False)} for m in range(1, 13)]
         })
     
-    # Sort by name
     result.sort(key=lambda x: (x["name"], x["vorname"]))
     
     return result
