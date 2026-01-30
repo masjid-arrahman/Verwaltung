@@ -360,27 +360,28 @@ async def debug_members(user: User = Depends(get_current_user)):
 async def debug_payments(year: int, user: User = Depends(get_current_user)):
     """Debug payments endpoint"""
     try:
-        print(f"DEBUG: Getting payments for year {year}")
         members = await db.members.find({}, {"_id": 0}).to_list(1000)
-        print(f"DEBUG: Found {len(members)} members")
         
         result = []
         for member in members:
-            print(f"DEBUG: Processing member: {member['member_id']}")
-            # Simple result without payments for now
+            payments = await db.payments.find(
+                {"member_id": member["member_id"], "year": year},
+                {"_id": 0}
+            ).to_list(12)
+            
+            # Create payment map
+            payment_map = {p["month"]: p["paid"] for p in payments}
+            
             member_result = {
                 "member_id": member["member_id"],
                 "vorname": member["vorname"],
                 "name": member["name"],
-                "test": "working"
+                "payments": [{"month": m, "paid": payment_map.get(m, False)} for m in range(1, 13)]
             }
             result.append(member_result)
-            print(f"DEBUG: Added member to result")
         
-        print(f"DEBUG: Returning {len(result)} members")
-        return result
+        return {"debug": True, "count": len(result), "data": result}
     except Exception as e:
-        print(f"DEBUG: Exception: {e}")
         return {"error": str(e)}
 
 
