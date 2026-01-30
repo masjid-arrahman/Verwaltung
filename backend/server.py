@@ -390,6 +390,31 @@ async def test_working(user: User = Depends(get_current_user)):
     return {"message": "test endpoint working", "user": user.name}
 
 
+@api_router.get("/payments/year/{year}")
+async def get_all_payments_for_year_original(year: int, user: User = Depends(get_current_user)):
+    """Get all payments for a specific year with member info - FIXED VERSION"""
+    members = await db.members.find({}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for member in members:
+        payments = await db.payments.find(
+            {"member_id": member["member_id"], "year": year},
+            {"_id": 0}
+        ).to_list(12)
+        
+        # Create payment map
+        payment_map = {p["month"]: p["paid"] for p in payments}
+        
+        result.append({
+            "member_id": member["member_id"],
+            "vorname": member["vorname"],
+            "name": member["name"],
+            "payments": [{"month": m, "paid": payment_map.get(m, False)} for m in range(1, 13)]
+        })
+    
+    return result
+
+
 @api_router.get("/payments-new/year/{year}")
 async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info"""
