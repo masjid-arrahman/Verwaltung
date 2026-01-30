@@ -168,6 +168,27 @@ export default function DashboardPage({ user, setUser }) {
     }
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const response = await axios.get(`${API}/payments/year/${selectedYear}/export`, {
+        withCredentials: true,
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `beitraege_${selectedYear}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Export erfolgreich");
+    } catch (error) {
+      toast.error("Fehler beim Export");
+    }
+  };
+
   const handlePaymentToggle = async (memberId, month, currentPaid) => {
     try {
       await axios.put(
