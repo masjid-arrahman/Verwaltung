@@ -356,7 +356,7 @@ async def debug_members(user: User = Depends(get_current_user)):
         return {"error": str(e)}
 
 
-@api_router.get("/payments/year/{year}", response_model=List[dict])
+@api_router.get("/payments/year/{year}")
 async def get_all_payments_for_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info"""
     try:
