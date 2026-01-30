@@ -392,7 +392,7 @@ async def test_working(user: User = Depends(get_current_user)):
 
 
 @api_router.get("/payments/year/{year}")
-async def get_all_payments_for_year_original(year: int, user: User = Depends(get_current_user)):
+async def get_payments_by_year(year: int, user: User = Depends(get_current_user)):
     """Get all payments for a specific year with member info - FIXED VERSION"""
     members = await db.members.find({}, {"_id": 0}).to_list(1000)
     
