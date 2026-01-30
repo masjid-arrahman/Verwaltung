@@ -125,6 +125,21 @@ export default function PublicPage() {
               </Select>
             </div>
           </div>
+
+          {/* Search Input */}
+          <div className="flex justify-center mt-6 animate-fadeIn stagger-3">
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Mitglied suchen..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 rounded-full bg-white shadow-md border-0"
+                data-testid="search-input"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
