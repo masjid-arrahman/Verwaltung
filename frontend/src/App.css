@@ -1,34 +1,59 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* App-specific styles */
+
+/* Login page background */
+.login-bg {
+    background-image: url('https://images.unsplash.com/photo-1769541607705-3b3c5095679b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBnZW9tZXRyaWMlMjBsaWdodCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzY5NzQyODYyfDA&ixlib=rb-4.1.0&q=85');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Hero section */
+.hero-bg {
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.95)),
+                      url('https://images.unsplash.com/photo-1758272133803-1cbb513689ca?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwzfHxkaXZlcnNlJTIwY29tbXVuaXR5JTIwZ3JvdXAlMjBzbWlsaW5nfGVufDB8fHx8MTc2OTc0Mjg2MHww&ixlib=rb-4.1.0&q=85');
+    background-size: cover;
+    background-position: center;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Table styles */
+.payment-table th {
+    @apply text-xs uppercase tracking-widest text-muted-foreground font-medium py-4;
 }
 
-.App-link {
-    color: #61dafb;
+.payment-table td {
+    @apply py-3 px-2;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Checkbox animation */
+.payment-checkbox {
+    @apply transition-all duration-200;
+}
+
+.payment-checkbox:checked {
+    @apply bg-emerald-500 border-emerald-500;
+}
+
+/* Month labels */
+.month-label {
+    @apply text-xs font-medium text-center w-8;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: hsl(40, 20%, 97%);
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(220, 15%, 80%);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(220, 15%, 70%);
 }
