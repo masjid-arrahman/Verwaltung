@@ -295,6 +295,50 @@ async def get_all_payments_for_year(year: int, user: User = Depends(get_current_
     return result
 
 
+@api_router.get("/payments/year/{year}/export")
+async def export_payments_csv(year: int, user: User = Depends(get_current_user)):
+    """Export all payments for a year as CSV"""
+    members = await db.members.find({}, {"_id": 0}).to_list(1000)
+    
+    # Create CSV in memory
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    
+    # Header row
+    months = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+    header = ["Vorname", "Nachname"] + months + ["Gesamt bezahlt"]
+    writer.writerow(header)
+    
+    # Data rows
+    for member in members:
+        payments = await db.payments.find(
+            {"member_id": member["member_id"], "year": year},
+            {"_id": 0}
+        ).to_list(12)
+        
+        payment_map = {p["month"]: p["paid"] for p in payments}
+        
+        row = [member["vorname"], member["name"]]
+        paid_count = 0
+        for m in range(1, 13):
+            paid = payment_map.get(m, False)
+            row.append("✓" if paid else "")
+            if paid:
+                paid_count += 1
+        row.append(f"{paid_count}/12")
+        writer.writerow(row)
+    
+    # Prepare response
+    output.seek(0)
+    filename = f"beitraege_{year}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 @api_router.get("/payments/{member_id}/{year}", response_model=List[dict])
 async def get_member_payments(member_id: str, year: int, user: User = Depends(get_current_user)):
     """Get payments for a member for a specific year"""
