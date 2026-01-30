@@ -327,14 +327,25 @@ export default function DashboardPage({ user, setUser }) {
             </div>
           </div>
 
-          <Button
-            onClick={handleOpenAddMember}
-            className="btn-accent rounded-full"
-            data-testid="add-member-btn"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Mitglied hinzufügen
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              className="rounded-full"
+              data-testid="export-csv-btn"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              CSV Export
+            </Button>
+            <Button
+              onClick={handleOpenAddMember}
+              className="btn-accent rounded-full"
+              data-testid="add-member-btn"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Mitglied hinzufügen
+            </Button>
+          </div>
         </div>
 
         {/* Payment Table */}
